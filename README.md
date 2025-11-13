@@ -1,73 +1,70 @@
-# React + TypeScript + Vite
+# ⚛️ EcoPonto App (Frontend)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Esta é a interface de utilizador (UI) do projeto EcoPonto, construída com React, Vite e Mapbox.
 
-Currently, two official plugins are available:
+Esta aplicação consome a API Go EcoPonto (o seu backend) para fornecer uma plataforma visual de mapeamento (ODS 12) e um painel de administração completo para a gestão dos pontos de coleta.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+O projeto foi construído com a filosofia "Agir Local, Pensar Global", sendo totalmente configurável através de variáveis de ambiente para ser facilmente adaptado a qualquer cidade.
 
-## React Compiler
+## ✨ Funcionalidades (Features)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Interface Pública (Mapa)
 
-## Expanding the ESLint configuration
+- **Mapa Interativo (Mapbox)**: Renderiza todos os ecopontos públicos
+- **Geolocalização**: Pede a localização do utilizador para centrar o mapa
+- **Filtragem Dinâmica**: Permite ao utilizador filtrar pontos por tipo de resíduo
+- **Lista de Proximidade (Recolhível)**: Barra lateral que mostra pontos mais próximos, ordenados por distância
+- **Sidebar de Detalhes**: Foto, horário e guia educacional (ODS 4)
+- **Design Responsivo**: Layout adaptável via Tailwind CSS
+- **"Pensar Global"**: Título, coordenadas e país 100% configuráveis via .env
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Interface de Admin (Painel)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Login Seguro**: Autenticação com Token JWT
+- **Rotas Protegidas**: Painel `/admin` inacessível sem token válido
+- **Dashboard CRUD**: Criar, ler, atualizar e apagar ecopontos
+- **Geocoding/Reverse Geocoding**: Mapbox com preenchimento automático de campos
+- **Upload de Imagem**: Integração com Cloudinary
+- **Modal de Confirmação**: Operações destrutivas com confirmação
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🛠️ Stack Tecnológico
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **Framework**: ⚛️ React com TypeScript
+- **Build**: ⚡ Vite
+- **Mapas**: 🗺️ Mapbox GL JS
+- **Estilização**: 💅 Tailwind CSS
+- **Componentes**: @headlessui/react
+- **Estado**: Zustand
+- **API**: Axios
+- **Upload**: Cloudinary
+- **Ícones**: Lucide React
+
+## 🚀 Como Executar
+
+### Pré-requisitos
+
+- Node.js (v18+) e NPM
+- EcoPonto API (Backend) em execução
+
+### Instalação
+
+```bash
+cd ecoponto-front
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Configuração (.env)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Crie `.env` na raiz com as chaves necessárias (veja `.env.example`).
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Executar
+
+```bash
+npm run dev
 ```
+
+Disponível em `http://localhost:5173`.
+
+---
+
+Desenvolvido por [Eric Oliveira](https://github.com/ericoliveiras) | [LinkedIn](https://www.linkedin.com/in/heyeriic/)
