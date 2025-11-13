@@ -1,8 +1,22 @@
 import axios from "axios";
 
+// 1. Define a URL da API com base no ambiente
+// O Vite define 'import.meta.env.PROD' como 'true' durante o 'npm run build'
+const VITE_API_URL = import.meta.env.PROD
+  ? import.meta.env.VITE_API_URL_PROD
+  : "http://localhost:8080/api";
+
+// Validação (ajuda a detetar erros durante o build)
+if (import.meta.env.PROD && !VITE_API_URL) {
+  console.error(
+    "VITE_API_URL_PROD não está definida nas variáveis de ambiente!"
+  );
+}
+// ------------------------------
+
 // Define a URL base da sua API Go
 const api = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: VITE_API_URL,
 });
 
 // Interceptor: é executado ANTES de CADA requisição
@@ -26,7 +40,6 @@ api.interceptors.request.use(
 );
 
 // --- VERIFIQUE ESTA INTERFACE ---
-// A sua interface EcoPonto DEVE ter estes campos
 export interface EcoPonto {
   id: string;
   nome: string;
@@ -36,8 +49,6 @@ export interface EcoPonto {
   logradouro: string;
   bairro: string;
   created_at: string;
-
-  // Campos que corrigem o seu bug (têm de estar aqui)
   horario_funcionamento?: string | null;
   foto_url?: string | null;
 }
@@ -69,7 +80,7 @@ export interface UpdateEcopontoData {
   longitude?: number;
 }
 
-// --- Funções da API ---
+// --- Funções da API  ---
 
 export const fetchEcopontos = async (
   lat: number,
@@ -87,7 +98,6 @@ export const fetchEcopontos = async (
     params.append("_", new Date().getTime().toString()); // Cache buster
 
     const response = await api.get(`/ecopontos?${params.toString()}`);
-    // O 'as EcoPonto[]' só funciona se a interface acima estiver correta
     return (response.data as EcoPonto[]) ?? [];
   } catch (err) {
     console.error("Erro ao buscar ecopontos:", err);
