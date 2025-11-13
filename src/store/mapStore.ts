@@ -1,29 +1,48 @@
 import { create } from "zustand";
-import type { EcoPonto } from "../services/api";
+import type { EcoPonto } from "../services/api"; // Importa a nossa interface
 
-// Interface do nosso estado global
+// Interface completa do nosso estado global
 interface MapState {
+  // Para a sidebar de DETALHES (que mostra a foto)
   selectedEcoponto: EcoPonto | null;
-  setSelectedEcoponto: (ponto: EcoPonto | null) => void;
   isSidebarOpen: boolean;
-  openSidebar: () => void;
+  setSelectedEcoponto: (ponto: EcoPonto) => void;
   closeSidebar: () => void;
+
+  // Para a sidebar de LISTA (que mostra a lista ordenada)
+  isListOpen: boolean;
+  setIsListOpen: (isOpen: boolean) => void;
+
+  // Para destacar o item na lista e dar zoom
+  activeEcopontoId: string | null;
+  setActiveEcopontoId: (id: string | null) => void;
 }
 
-// Cria o "hook" do Zustand
+// Cria o "hook" do Zustand com todas as funções
 export const useMapStore = create<MapState>((set) => ({
-  // O ponto que está selecionado
+  // Estado inicial
   selectedEcoponto: null,
-  // A sidebar está aberta?
   isSidebarOpen: false,
+  isListOpen: false,
+  activeEcopontoId: null,
 
-  // Ação para selecionar um ponto
+  // Ações da sidebar de DETALHES
   setSelectedEcoponto: (ponto) =>
-    set({ selectedEcoponto: ponto, isSidebarOpen: ponto !== null }),
+    set({
+      selectedEcoponto: ponto,
+      isSidebarOpen: true,
+      activeEcopontoId: ponto.id, // Ativa o item na lista também
+    }),
+  closeSidebar: () =>
+    set({
+      selectedEcoponto: null,
+      isSidebarOpen: false,
+      activeEcopontoId: null, // Desativa o item
+    }),
 
-  // Ação para abrir a sidebar (usado pelo 'set')
-  openSidebar: () => set({ isSidebarOpen: true }),
+  // Ações da sidebar de LISTA
+  setIsListOpen: (isOpen) => set({ isListOpen: isOpen }),
 
-  // Ação para fechar a sidebar
-  closeSidebar: () => set({ isSidebarOpen: false, selectedEcoponto: null }),
+  // Ações do item ATIVO
+  setActiveEcopontoId: (id) => set({ activeEcopontoId: id }),
 }));
