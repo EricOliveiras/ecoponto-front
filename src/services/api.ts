@@ -1,13 +1,14 @@
 import axios from "axios";
 
-// 1. Define a URL da API com base no ambiente
-// O Vite define 'import.meta.env.PROD' como 'true' durante o 'npm run build'
-const VITE_API_URL = import.meta.env.PROD
+// --- ATUALIZAÇÃO IMPORTANTE ---
+
+// 1. Define a URL RAIZ da API com base no ambiente
+const VITE_API_ROOT = import.meta.env.PROD
   ? import.meta.env.VITE_API_URL_PROD
-  : "http://localhost:8080/api";
+  : "http://localhost:8080";
 
 // Validação (ajuda a detetar erros durante o build)
-if (import.meta.env.PROD && !VITE_API_URL) {
+if (import.meta.env.PROD && !VITE_API_ROOT) {
   console.error(
     "VITE_API_URL_PROD não está definida nas variáveis de ambiente!"
   );
@@ -16,7 +17,7 @@ if (import.meta.env.PROD && !VITE_API_URL) {
 
 // Define a URL base da sua API Go
 const api = axios.create({
-  baseURL: VITE_API_URL,
+  baseURL: `${VITE_API_ROOT}/api`,
 });
 
 // Interceptor: é executado ANTES de CADA requisição
