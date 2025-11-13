@@ -1,5 +1,11 @@
 import { Fragment } from "react";
-import { Dialog, DialogPanel, Transition } from "@headlessui/react";
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  Transition,
+  TransitionChild,
+} from "@headlessui/react";
 import { X } from "lucide-react";
 import { useMapStore } from "../store/mapStore";
 
@@ -27,10 +33,10 @@ export function DetalheSidebar() {
   }
 
   return (
-    <Transition.Root show={isSidebarOpen} as={Fragment}>
+    <Transition show={isSidebarOpen} as={Fragment}>
       <Dialog as="div" className="relative z-[1000]" onClose={closeSidebar}>
         {/* Overlay (fundo escuro) */}
-        <Transition.Child
+        <TransitionChild
           as={Fragment}
           enter="ease-in-out duration-300"
           enterFrom="opacity-0"
@@ -40,12 +46,12 @@ export function DetalheSidebar() {
           leaveTo="opacity-0"
         >
           <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-        </Transition.Child>
+        </TransitionChild>
 
         <div className="fixed inset-0 overflow-hidden">
           <div className="absolute inset-0 overflow-hidden">
             <div className="pointer-events-none fixed inset-y-0 left-0 flex max-w-full pr-10">
-              <Transition.Child
+              <TransitionChild
                 as={Fragment}
                 enter="transform transition ease-in-out duration-300"
                 enterFrom="-translate-x-full"
@@ -59,9 +65,9 @@ export function DetalheSidebar() {
                     <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
                       {/* Cabeçalho da Sidebar */}
                       <div className="flex items-start justify-between">
-                        <Dialog.Title className="text-xl font-bold text-gray-900">
+                        <DialogTitle className="text-xl font-bold text-gray-900">
                           {selectedEcoponto.nome}
-                        </Dialog.Title>
+                        </DialogTitle>
                         <button
                           type="button"
                           className="-m-2 p-2 text-gray-400 hover:text-gray-500"
@@ -127,12 +133,12 @@ export function DetalheSidebar() {
                     </div>
                   </div>
                 </DialogPanel>
-              </Transition.Child>
+              </TransitionChild>
             </div>
           </div>
         </div>
       </Dialog>
-    </Transition.Root>
+    </Transition>
   );
 }
 
