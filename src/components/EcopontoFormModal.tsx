@@ -1,5 +1,11 @@
 import { Fragment, useState, useEffect } from "react";
-import { Dialog, Transition } from "@headlessui/react";
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  Transition,
+  TransitionChild,
+} from "@headlessui/react";
 import Map, { Marker } from "react-map-gl";
 import { Geocoder } from "@mapbox/search-js-react";
 
@@ -305,7 +311,7 @@ export function EcopontoFormModal({
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={onClose}>
         {/* ... (Overlay) ... */}
-        <Transition.Child
+        <TransitionChild
           as={Fragment}
           enter="ease-out duration-300"
           enterFrom="opacity-0"
@@ -315,11 +321,11 @@ export function EcopontoFormModal({
           leaveTo="opacity-0"
         >
           <div className="fixed inset-0 bg-black bg-opacity-25" />
-        </Transition.Child>
+        </TransitionChild>
 
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <Transition.Child
+            <TransitionChild
               as={Fragment}
               enter="ease-out duration-300"
               enterFrom="opacity-0 scale-95"
@@ -328,13 +334,13 @@ export function EcopontoFormModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                <Dialog.Title
+              <DialogPanel className="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                <DialogTitle
                   as="h3"
                   className="text-xl font-medium leading-6 text-gray-900"
                 >
                   {isEditMode ? "Editar Ecoponto" : "Adicionar Novo Ecoponto"}
-                </Dialog.Title>
+                </DialogTitle>
 
                 <form onSubmit={handleSubmit} className="mt-4">
                   {error && (
@@ -521,7 +527,7 @@ export function EcopontoFormModal({
                     </div>
 
                     {/* Coluna 2 (Mapa e Busca - sem mudanças) */}
-                    <div className="space-y-4">
+                    <div className="space-y-4 flex flex-col h-full">
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
                           Procurar Endereço
@@ -536,7 +542,9 @@ export function EcopontoFormModal({
                         </div>
                       </div>
 
-                      <div className="h-64 w-full rounded-md overflow-hidden z-0">
+                      {/* --- ATUALIZAÇÃO DO MAPA --- */}
+                      {/* Trocamos 'h-64' por 'flex-1' (crescer) e 'min-h-[256px]' (altura mínima) */}
+                      <div className="flex-1 w-full rounded-md overflow-hidden z-0 min-h-[256px]">
                         <Map
                           {...viewState}
                           onMove={(evt) => setViewState(evt.viewState)}
@@ -557,13 +565,16 @@ export function EcopontoFormModal({
                           )}
                         </Map>
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">
+
+                      {/* Removemos o 'mt-1' daqui porque o 'space-y-4' já faz o espaçamento */}
+                      <p className="text-xs text-gray-500">
                         Use a busca OU clique/arraste o pin no mapa.
                       </p>
                     </div>
                   </div>
+                  {/* ------------------------------- */}
 
-                  {/* Botões Salvar/Cancelar */}
+                  {/* ... (Botões Salvar/Cancelar) ... */}
                   <div className="mt-6 flex justify-end space-x-2">
                     <button
                       type="button"
@@ -572,7 +583,6 @@ export function EcopontoFormModal({
                     >
                       Cancelar
                     </button>
-                    {/* --- ATUALIZAÇÃO 5: LÓGICA DO BOTÃO SALVAR --- */}
                     <button
                       type="submit"
                       disabled={isLoading || isUploading}
@@ -586,8 +596,8 @@ export function EcopontoFormModal({
                     </button>
                   </div>
                 </form>
-              </Dialog.Panel>
-            </Transition.Child>
+              </DialogPanel>
+            </TransitionChild>
           </div>
         </div>
       </Dialog>
