@@ -7,6 +7,9 @@ import {
   TransitionChild,
 } from "@headlessui/react";
 import Map, { Marker } from "react-map-gl";
+
+// --- ATUALIZAÇÃO AQUI ---
+// O nome correto do componente é GeocodingControl, não Geocoder
 import { Geocoder } from "@mapbox/search-js-react";
 
 import type {
@@ -16,7 +19,7 @@ import type {
 } from "../services/api";
 import { adminCreateEcoponto, adminUpdateEcoponto } from "../services/api";
 
-// --- ATUALIZAÇÃO 1: LÊ AS CHAVES DO .ENV ---
+// --- LÊ AS VARS DO .ENV (Sug. 3) ---
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 const DEFAULT_LAT = parseFloat(
   import.meta.env.VITE_DEFAULT_MAP_LAT || "-1.359"
@@ -91,7 +94,6 @@ export function EcopontoFormModal({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // --- ATUALIZAÇÃO 2: NOVO ESTADO DE UPLOAD ---
   const [isUploading, setIsUploading] = useState(false);
 
   const [markerPosition, setMarkerPosition] = useState<{
@@ -219,7 +221,7 @@ export function EcopontoFormModal({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // --- ATUALIZAÇÃO 3: NOVA FUNÇÃO (UPLOAD P/ CLOUDINARY) ---
+  // --- NOVA FUNÇÃO (UPLOAD P/ CLOUDINARY) ---
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -484,7 +486,7 @@ export function EcopontoFormModal({
                         />
                       </div>
 
-                      {/* --- ATUALIZAÇÃO 4: CAMPO DE UPLOAD DE FOTO --- */}
+                      {/* --- CAMPO DE UPLOAD DE FOTO --- */}
                       <div>
                         <label
                           htmlFor="foto_upload"
@@ -500,7 +502,6 @@ export function EcopontoFormModal({
                             className="mt-2 w-full h-32 object-cover rounded-md"
                           />
                         )}
-                        {/* Mostra "A carregar..." enquanto o upload está a decorrer */}
                         {isUploading ? (
                           <div className="mt-2 text-sm text-blue-600">
                             A carregar imagem...
@@ -518,7 +519,6 @@ export function EcopontoFormModal({
                                        file:bg-blue-50 file:text-blue-700
                                        hover:file:bg-blue-100"
                             accept="image/png, image/jpeg"
-                            // Desativa o botão de ficheiro enquanto outro upload está a decorrer
                             disabled={isUploading}
                           />
                         )}
@@ -533,17 +533,24 @@ export function EcopontoFormModal({
                           Procurar Endereço
                         </label>
                         <div className="mt-2">
+                          {/* --- ATUALIZAÇÃO: Nome do Componente --- */}
                           <Geocoder
+                            key={isOpen ? "gc-open" : "gc-closed"}
                             accessToken={MAPBOX_TOKEN}
                             placeholder="Buscar endereço..."
                             onRetrieve={handleGeocoderRetrieve}
-                            country={GEOCODING_COUNTRY}
+                            options={{
+                              country: GEOCODING_COUNTRY,
+                              language: "pt-BR",
+                              proximity: {
+                                lng: DEFAULT_LON,
+                                lat: DEFAULT_LAT,
+                              },
+                            }}
                           />
                         </div>
                       </div>
 
-                      {/* --- ATUALIZAÇÃO DO MAPA --- */}
-                      {/* Trocamos 'h-64' por 'flex-1' (crescer) e 'min-h-[256px]' (altura mínima) */}
                       <div className="flex-1 w-full rounded-md overflow-hidden z-0 min-h-[256px]">
                         <Map
                           {...viewState}
@@ -566,7 +573,6 @@ export function EcopontoFormModal({
                         </Map>
                       </div>
 
-                      {/* Removemos o 'mt-1' daqui porque o 'space-y-4' já faz o espaçamento */}
                       <p className="text-xs text-gray-500">
                         Use a busca OU clique/arraste o pin no mapa.
                       </p>
