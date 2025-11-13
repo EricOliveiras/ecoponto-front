@@ -6,7 +6,10 @@ import {
   adminDeleteEcoponto,
   type EcoPonto,
 } from "../services/api";
+
+// 1. Importa os dois modais
 import { EcopontoFormModal } from "../components/EcopontoFormModal";
+import { DeleteConfirmModal } from "../components/DeleteConfirmModal"; // <-- NOVO
 
 export function AdminDashboard() {
   const navigate = useNavigate();
@@ -14,9 +17,18 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Estados do Modal de Formulário (Adicionar/Editar)
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [currentEcoponto, setCurrentEcoponto] = useState<EcoPonto | null>(null);
 
+  // --- 2. NOVOS ESTADOS PARA O MODAL DE APAGAR ---
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [ecopontoToDelete, setEcopontoToDelete] = useState<EcoPonto | null>(
+    null
+  );
+  const [isDeleting, setIsDeleting] = useState(false); // Feedback de loading
+
+  // ... (loadData, useEffect, handleLogout - sem mudanças) ...
   const loadData = async () => {
     setLoading(true);
     setError("");
@@ -30,52 +42,60 @@ export function AdminDashboard() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadData();
   }, []);
-
   const handleLogout = () => {
     clearToken();
     navigate("/login");
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm("Tem a certeza que quer apagar este ecoponto?")) {
-      const success = await adminDeleteEcoponto(id);
-      if (success) {
-        loadData();
-      } else {
-        alert("Falha ao apagar o ecoponto.");
-      }
-    }
+  // --- 3. FUNÇÃO 'handleDelete' ATUALIZADA ---
+  // Esta função agora APENAS abre o modal de confirmação
+  const handleDeleteClick = (ponto: EcoPonto) => {
+    setEcopontoToDelete(ponto); // Guarda quem queremos apagar
+    setIsDeleteModalOpen(true); // Abre o modal
   };
 
+  // --- 4. NOVA FUNÇÃO (Chamada pelo modal) ---
+  // Esta função é que faz o trabalho de apagar
+  const handleConfirmDelete = async () => {
+    if (!ecopontoToDelete) return; // Segurança
+
+    setIsDeleting(true);
+    const success = await adminDeleteEcoponto(ecopontoToDelete.id);
+
+    if (success) {
+      loadData(); // Recarrega a tabela
+    } else {
+      alert("Falha ao apagar o ecoponto.");
+    }
+
+    setIsDeleting(false);
+    setIsDeleteModalOpen(false); // Fecha o modal
+    setEcopontoToDelete(null); // Limpa o estado
+  };
+
+  // Funções do Modal de Formulário (sem mudanças)
   const handleOpenCreateModal = () => {
     setCurrentEcoponto(null);
-    setIsModalOpen(true);
+    setIsFormModalOpen(true);
   };
-
   const handleOpenEditModal = (ponto: EcoPonto) => {
     setCurrentEcoponto(ponto);
-    setIsModalOpen(true);
+    setIsFormModalOpen(true);
   };
-
   const handleModalSave = () => {
-    loadData();
+    loadData(); // Recarrega a tabela
   };
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
-      {" "}
-      {/* Adiciona padding responsivo */}
-      {/* --- ATUALIZAÇÃO RESPONSIVA CABEÇALHO --- */}
-      {/* Empilha em ecrãs 'xs' (default), fica lado-a-lado em 'sm' (small) e maiores */}
+      {/* Cabeçalho (sem mudanças) */}
       <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
           Painel de Admin
         </h1>
-        {/* Botões ficam num 'wrapper' para empilhar corretamente */}
         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
           <button
             onClick={handleOpenCreateModal}
@@ -91,7 +111,8 @@ export function AdminDashboard() {
           </button>
         </div>
       </header>
-      {/* --- ATUALIZAÇÃO RESPONSIVA TABELA --- */}
+
+      {/* Tabela (Quase sem mudanças) */}
       <div className="bg-white p-4 sm:p-6 rounded-lg shadow-xl">
         <h2 className="text-2xl font-semibold mb-4">Gerir Ecopontos</h2>
 
@@ -99,8 +120,6 @@ export function AdminDashboard() {
         {error && <p className="text-red-500">{error}</p>}
 
         {!loading && !error && (
-          // 'overflow-x-auto' garante que a tabela pode rolar horizontalmente
-          // se o ecrã for *realmente* pequeno, sem quebrar o layout da página.
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -111,12 +130,9 @@ export function AdminDashboard() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Tipo
                   </th>
-
-                  {/* Coluna 'Bairro' agora está oculta (hidden) em 'xs', e aparece (md:table-cell) em 'md' */}
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Bairro
                   </th>
-
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Ações
                   </th>
@@ -142,12 +158,9 @@ export function AdminDashboard() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {ponto.tipo_residuo}
                       </td>
-
-                      {/* Célula 'Bairro' também oculta (hidden) em 'xs' */}
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {ponto.bairro || "N/D"}
                       </td>
-
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
                           onClick={() => handleOpenEditModal(ponto)}
@@ -155,8 +168,9 @@ export function AdminDashboard() {
                         >
                           Editar
                         </button>
+                        {/* --- 5. LIGA O NOVO HANDLER --- */}
                         <button
-                          onClick={() => handleDelete(ponto.id)}
+                          onClick={() => handleDeleteClick(ponto)} // <--- ATUALIZADO
                           className="text-red-600 hover:text-red-900"
                         >
                           Apagar
@@ -170,11 +184,24 @@ export function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* --- Renderiza os DOIS modais --- */}
+
+      {/* 1. Modal de Adicionar/Editar */}
       <EcopontoFormModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isFormModalOpen}
+        onClose={() => setIsFormModalOpen(false)}
         onSave={handleModalSave}
         ecopontoToEdit={currentEcoponto}
+      />
+
+      {/* 2. Modal de Apagar */}
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        itemName={ecopontoToDelete?.nome || ""}
+        isLoading={isDeleting}
       />
     </div>
   );
