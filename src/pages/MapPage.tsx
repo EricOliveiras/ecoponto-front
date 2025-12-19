@@ -1,6 +1,5 @@
 import { useState, useEffect, Fragment } from "react";
 import Map, { Marker, NavigationControl } from "react-map-gl";
-// Adicionamos o 'Tab' do HeadlessUI
 import {
   Dialog,
   Transition,
@@ -12,7 +11,6 @@ import {
   TabPanels,
   TabPanel,
 } from "@headlessui/react";
-// Adicionamos os ícones de links
 import {
   Info,
   X,
@@ -23,6 +21,7 @@ import {
   Clock,
   Linkedin,
   Github,
+  MapPin, // Adicionado para o ícone de localização do usuário
 } from "lucide-react";
 
 import {
@@ -52,7 +51,6 @@ const tiposDeFiltro = [
   { value: "eletronico", label: "Eletrônicos" },
 ];
 
-// Helper para classes do Tailwind (para as Abas)
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
@@ -64,12 +62,17 @@ export function MapPage() {
   );
 
   const [tipoFiltro, setTipoFiltro] = useState("todos");
-  const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
+
+  // Tenta carregar a localização salva no localStorage ao iniciar
+  const [userCoords, setUserCoords] = useState<[number, number] | null>(() => {
+    const saved = localStorage.getItem("user_location");
+    return saved ? JSON.parse(saved) : null;
+  });
 
   const [viewState, setViewState] = useState({
-    longitude: DEFAULT_LON,
-    latitude: DEFAULT_LAT,
-    zoom: DEFAULT_ZOOM,
+    longitude: userCoords ? userCoords[1] : DEFAULT_LON,
+    latitude: userCoords ? userCoords[0] : DEFAULT_LAT,
+    zoom: userCoords ? 14 : DEFAULT_ZOOM,
   });
 
   const {
@@ -82,18 +85,29 @@ export function MapPage() {
 
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
 
-  // ... (Efeitos 1, 2, 3, 4 - sem mudanças) ...
-  // Efeito 1: Obter a localização do utilizador
+  // Efeito 1: Obter a localização precisa e salvar no localStorage
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
+        const coords: [number, number] = [latitude, longitude];
+
         setViewState((prev) => ({ ...prev, latitude, longitude, zoom: 14 }));
-        setUserCoords([latitude, longitude]);
+        setUserCoords(coords);
+
+        // Salva para uso futuro
+        localStorage.setItem("user_location", JSON.stringify(coords));
       },
       () => {
-        console.warn("Geolocalização falhou. Usando localização padrão.");
-        setUserCoords(DEFAULT_COORDS);
+        console.warn(
+          "Geolocalização falhou. Usando localização padrão ou salva."
+        );
+        if (!userCoords) setUserCoords(DEFAULT_COORDS);
+      },
+      {
+        enableHighAccuracy: true, // Garante a maior precisão possível (GPS)
+        timeout: 10000,
+        maximumAge: 0,
       }
     );
   }, []);
@@ -102,15 +116,13 @@ export function MapPage() {
   useEffect(() => {
     if (userCoords) {
       const [lat, lon] = userCoords;
-      console.log(`Buscando ${tipoFiltro} perto de ${lat}, ${lon}`);
-
       fetchEcopontos(lat, lon, tipoFiltro).then((pontos) => {
         setListaOriginal(pontos);
       });
     }
   }, [userCoords, tipoFiltro]);
 
-  // Efeito 3: Processar os Ecopontos (Simplificado)
+  // Efeito 3: Processar os Ecopontos
   useEffect(() => {
     if (userCoords && listaOriginal) {
       const processados = processarEcopontos(listaOriginal, userCoords);
@@ -120,7 +132,7 @@ export function MapPage() {
     }
   }, [listaOriginal, userCoords]);
 
-  // Efeito 4: Mover o mapa quando um item da lista é clicado (Zustand)
+  // Efeito 4: Mover o mapa quando um item da lista é clicado
   useEffect(() => {
     if (activeEcopontoId) {
       const pontoAtivo = listaProcessada.find((p) => p.id === activeEcopontoId);
@@ -128,7 +140,7 @@ export function MapPage() {
         setViewState({
           latitude: pontoAtivo.latitude,
           longitude: pontoAtivo.longitude,
-          zoom: 16, // Zoom no ponto
+          zoom: 16,
         });
       }
     }
@@ -181,13 +193,11 @@ export function MapPage() {
         </button>
       </div>
 
-      {/* Sidebar de Detalhes */}
       <DetalheSidebar />
 
-      {/* Sidebar de Lista (Recolhível) */}
+      {/* Sidebar de Lista */}
       <Transition show={isListOpen} as={Fragment}>
         <Dialog as="div" className="relative z-[1500]" onClose={setIsListOpen}>
-          {/* ... (Todo o código da Sidebar de Lista) ... */}
           <TransitionChild
             as={Fragment}
             enter="ease-in-out duration-300"
@@ -282,7 +292,6 @@ export function MapPage() {
         </Dialog>
       </Transition>
 
-      {/* O Mapa (sem mudanças) */}
       <Map
         {...viewState}
         onMove={(evt) => setViewState(evt.viewState)}
@@ -292,6 +301,22 @@ export function MapPage() {
         onClick={closeSidebar}
       >
         <NavigationControl position="bottom-right" />
+
+        {/* Marcador da Minha Localização */}
+        {userCoords && (
+          <Marker
+            longitude={userCoords[1]}
+            latitude={userCoords[0]}
+            anchor="center"
+          >
+            <div className="relative flex items-center justify-center">
+              <div className="absolute h-8 w-8 bg-blue-500 rounded-full opacity-30 animate-ping" />
+              <div className="relative bg-blue-600 p-1.5 rounded-full border-2 border-white shadow-lg">
+                <MapPin className="w-5 h-5 text-white fill-current" />
+              </div>
+            </div>
+          </Marker>
+        )}
 
         {listaProcessada.map((ponto) => (
           <Marker
@@ -308,7 +333,7 @@ export function MapPage() {
         ))}
       </Map>
 
-      {/* --- ATUALIZAÇÃO: MODAL DE INFORMAÇÕES (Layout Corrigido) --- */}
+      {/* MODAL DE INFORMAÇÕES */}
       <Transition appear show={isInfoModalOpen} as={Fragment}>
         <Dialog
           as="div"
@@ -337,9 +362,7 @@ export function MapPage() {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                {/* 1. Adicionamos 'relative' aqui */}
                 <DialogPanel className="relative w-full max-w-xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                  {/* 2. Movemos o botão 'X' para fora, com 'absolute' */}
                   <button
                     onClick={() => setIsInfoModalOpen(false)}
                     className="absolute top-4 right-4 p-1 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none"
@@ -348,7 +371,6 @@ export function MapPage() {
                   </button>
 
                   <TabGroup>
-                    {/* 3. Centralizamos o TabList */}
                     <div className="flex justify-center items-center mb-4">
                       <TabList className="flex space-x-1 rounded-xl bg-blue-100 p-1">
                         <Tab
@@ -378,12 +400,9 @@ export function MapPage() {
                           Sobre o Projeto
                         </Tab>
                       </TabList>
-                      {/* O botão 'X' estava aqui */}
                     </div>
 
-                    {/* 2. Os Painéis das Abas */}
                     <TabPanels className="mt-4">
-                      {/* Painel 1: Guia de Descarte */}
                       <TabPanel>
                         <div className="space-y-6">
                           <p className="text-sm text-gray-600">
@@ -437,7 +456,6 @@ export function MapPage() {
                         </div>
                       </TabPanel>
 
-                      {/* Painel 2: Sobre o Projeto */}
                       <TabPanel>
                         <div className="space-y-4">
                           <h4 className="text-lg font-semibold text-gray-800">
